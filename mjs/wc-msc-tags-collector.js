@@ -213,7 +213,7 @@ if (CSS?.registerProperty) {
       initialValue: 'rgba(91 99 106)'
     });
   } catch(err) {
-    console.warn(`msc-collage: ${err.message}`);
+    console.warn(`msc-tags-collector: ${err.message}`);
   }
 }
 
