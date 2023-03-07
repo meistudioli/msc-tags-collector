@@ -207,6 +207,7 @@ Set limitation for &lt;msc-tags-collector />. It should be JSON string. Develope
 | addTag(tag) | Add tag you like. |
 | removeTag(tag) | Remove tag you like. |
 | removeAll | Remove all tags. |
+| focus | Focus on input field. |
 
 ## Event
 

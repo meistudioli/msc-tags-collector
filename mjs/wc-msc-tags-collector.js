@@ -853,6 +853,10 @@ export class MscTagsCollector extends HTMLElement {
 
     this.#removeTag(idx);
   }
+
+  focus() {
+    this.#nodes.input.focus();
+  }
 }
 
 // define web component
