@@ -35,6 +35,7 @@ Put &lt;msc-tags-collector /> into HTML document. It will have different functio
         "drama",
         "mew 😺"
       ],
+      "illegalkeys": ["#", " "],
       "l10n": {
         "placeholder": "tag"
       },
@@ -67,6 +68,7 @@ import { MscTagsCollector } from 'https://your-domain/wc-msc-tags-collector.js';
 // use DOM api
 const nodeA = document.createElement('msc-tags-collector');
 document.body.appendChild(nodeA);
+nodeA.illegalkeys = ['#'];
 nodeA.placeholder = [
   'normal 😺',
   'happy 😸',
@@ -159,6 +161,18 @@ Set placeholder for &lt;msc-tags-collector />. It should be JSON string. Develop
 </msc-tags-collector>
 ```
 
+- **illegalkeys**
+
+Set illegal keys for &lt;msc-tags-collector />. It should be JSON string. Developers could set illegal keys here (some keys you don't want user input). Default is `[]` (not set).
+
+```html
+<msc-tags-collector
+  illegalkeys='["#"," "]'
+>
+  ...
+</msc-tags-collector>
+```
+
 - **l10n**
 
 Set localization for &lt;msc-tags-collector />. It will replace some text to anything you like. It should be JSON string. Developers could set input's `placeholder` here.
@@ -194,6 +208,7 @@ Set limitation for &lt;msc-tags-collector />. It should be JSON string. Develope
 | Property Name | Type | Description |
 | ----------- | ----------- | ----------- |
 | placeholder | Array | Getter / Setter for placeholder. Developers could set default tags here. Default is `[]`. |
+| illegalkeys | Array | Getter / Setter for illegalkeys. Developers could set illegal keys here (some keys you don't want user input). Default is `[]`. |
 | l10n | Object | Getter / Setter for l10n. Developers could set input's `placeholder` here. Default is `tag`. |
 | limitation | Object | Getter / Setter for limitation. Developers could set `maxcount` and `maxlength` here. |
 | tagsInfo | Array | Getter for current &lt;msc-tags-collector />'s tags information. |

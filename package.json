@@ -1,6 +1,6 @@
 {
   "name": "msc-tags-collector",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "msc-tags-collector is a web component for input tags purpose. Users could key in anything they like (include space). Besides that sorting has already build-in with msc-tags-collector. We can go by 「DRAG」and「DROP」or ←、→ to arrange tag orders we like.",
   "main": "index.html",
   "scripts": {

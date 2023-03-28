@@ -199,7 +199,7 @@ customElements.whenDefined('msc-tags-collector').then(() => {
       }
 
       case 'msc-tags-collector-error':
-        const { message = '', tag } = detail;
+        const { message = '', tag, illegalkey } = detail;
         const {
           limitation: {
             maxcount
@@ -230,6 +230,10 @@ customElements.whenDefined('msc-tags-collector').then(() => {
 
           case 'missing tag':
             hint = `Tag「${tag}」missing.`;
+            break;
+
+          case 'contain illegal key':
+            hint = `標籤隱含不合法字元「${illegalkey}」，無法加入。`;
             break;
         }
 

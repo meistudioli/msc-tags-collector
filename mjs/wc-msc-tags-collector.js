@@ -7,6 +7,7 @@ import {
 import Mustache from './mustache.js';
 
 const defaults = {
+  illegalkeys: [],
   placeholder: [],
   l10n: {
     placeholder: 'tag'
@@ -264,6 +265,7 @@ export class MscTagsCollector extends HTMLElement {
     this._onClick = this._onClick.bind(this);
     this._onTransitionend = this._onTransitionend.bind(this);
     this._onInput = this._onInput.bind(this);
+    this._onInputKeyDown = this._onInputKeyDown.bind(this);
   }
 
   async connectedCallback() {
@@ -282,7 +284,10 @@ export class MscTagsCollector extends HTMLElement {
     }
 
     // upgradeProperty
-    Object.keys(defaults).forEach((key) => this.#upgradeProperty(key));
+    const properties = Object.keys(defaults);
+    const find = properties.splice(properties.findIndex((key) => key === 'illegalkeys'), 1);
+    properties.unshift(find[0]); // put illegalkeys in first position
+    properties.forEach((key) => this.#upgradeProperty(key));
 
     // evts
     this.#data.controller = new AbortController();
@@ -294,6 +299,7 @@ export class MscTagsCollector extends HTMLElement {
     collector.addEventListener('click', this._onClick, { signal });
     collector.addEventListener('transitionend', this._onTransitionend, { signal });
     input.addEventListener('input', this._onInput, { signal });
+    input.addEventListener('keydown', this._onInputKeyDown, { signal });
   }
 
   disconnectedCallback() {
@@ -313,6 +319,24 @@ export class MscTagsCollector extends HTMLElement {
       }
     } else {
       switch (attrName) {
+        case 'illegalkeys': {
+          let values;
+
+          try {
+            values = JSON.parse(newValue);
+
+            if (!Array.isArray(values)) {
+              throw new Error(`${_wcl.classToTagName(this.constructor.name)}: illegalkeys should be array.`);
+            }
+          } catch(err) {
+            console.warn(`${_wcl.classToTagName(this.constructor.name)}: ${err.message}`);
+            values = [...defaults[attrName]];
+          }
+
+          this.#config[attrName] = values;
+          break;
+        }
+
         case 'placeholder': {
           const { maxcount } = this.limitation;
           let values;
@@ -364,6 +388,20 @@ export class MscTagsCollector extends HTMLElement {
         };
 
         input.maxlength = maxlength;
+        break;
+      }
+
+      case 'illegalkeys': {
+        if (this.tagsInfo.length) {
+          const tags = [...this.tagsInfo];
+
+          this.removeAll();
+          tags.forEach(
+            (tag) => {
+              this.#add(tag);
+            }
+          );
+        }
         break;
       }
 
@@ -477,6 +515,21 @@ export class MscTagsCollector extends HTMLElement {
     return this.#config.placeholder;
   }
 
+  set illegalkeys(value) {
+    if (value) {
+      const newValue = typeof value === 'string'
+        ? JSON.parse(value)
+        : (Array.isArray(value) ? value : defaults.illegalkeys);
+      this.setAttribute('illegalkeys', JSON.stringify(newValue));
+    } else {
+      this.removeAttribute('illegalkeys');
+    }
+  }
+
+  get illegalkeys() {
+    return this.#config.illegalkeys;
+  }
+
   get tagsInfo() {
     return this.#getUnits()
       .reduce(
@@ -575,6 +628,7 @@ export class MscTagsCollector extends HTMLElement {
     const { maxcount } = this.limitation;
     const content = tag || input.value.trim();
     let error = '';
+    let illegalkey = '';
 
     if (!content) {
       error = 'empty content';
@@ -582,6 +636,13 @@ export class MscTagsCollector extends HTMLElement {
       error = 'exceed maxcount';
     } else if (this.#data.tags.includes(content)) {
       error = 'duplicate tag';
+    } else {
+      const idx = this.illegalkeys.findIndex((key) => content.includes(key));
+
+      if (idx !== -1) {
+        error = 'contain illegal key';
+        illegalkey = this.illegalkeys[idx];
+      }
     }
 
     if (!error) {
@@ -604,7 +665,8 @@ export class MscTagsCollector extends HTMLElement {
     } else {
       this.#fireEvent(custumEvents.error, {
         message: error,
-        ...(this.#data.tags.includes(content) && { tag: content })
+        ...(this.#data.tags.includes(content) && { tag: content }),
+        ...(illegalkey && { illegalkey })
       });
       
       return false;
@@ -674,7 +736,6 @@ export class MscTagsCollector extends HTMLElement {
     this.#data.dY = pY - (_wcl.scrollY + y);
     this.#nodes.activeTarget = target;
     this.#nodes.units = units;
-    // target.toggleAttribute('inert', true);
     target.dataset.status = 'drag';
     target.focus();
 
@@ -712,7 +773,6 @@ export class MscTagsCollector extends HTMLElement {
     delete collector.dataset.action;
     decoy.classList.toggle('tags-collector__unit__decoy--show', false);
 
-    // activeTarget.toggleAttribute('inert', false);
     delete activeTarget.dataset.status;
     activeTarget.focus();
 
@@ -747,10 +807,25 @@ export class MscTagsCollector extends HTMLElement {
     }
   }
 
+  _onInputKeyDown(evt) {
+    evt.stopPropagation();
+
+    if (evt.key !== 'Backspace') {
+      return;
+    }
+
+    const { input } = this.#nodes;
+    const units = this.#getUnits();
+
+    if (!input.value.length && units.length) {
+      this.#removeTag(units.length - 1);
+    }
+  }
+
   _onKeyDown(evt) {
-    const { collector, input } = this.#nodes;
+    const { collector } = this.#nodes;
     const { key } = evt;
-    const target = (this.shadowRoot.activeElement === input) ? input : this.shadowRoot.activeElement.closest('.tags-collector__unit');
+    const target = this.shadowRoot.activeElement.closest('.tags-collector__unit');
 
     if (!MscTagsCollector.supportedKeyboardKeys.includes(key) || collector.dataset.action || !target) {
       return;
@@ -763,10 +838,7 @@ export class MscTagsCollector extends HTMLElement {
     const units = this.#getUnits();
     const totalCount = this.count;
     const currentIndex = units.indexOf(target);
-    const isInput = target === input;
-    if (!isInput) {
-      this.#nodes.activeTarget = target;
-    }
+    this.#nodes.activeTarget = target;
 
     switch (key) {
       case 'Escape':
@@ -774,32 +846,21 @@ export class MscTagsCollector extends HTMLElement {
         break;
 
       case 'Backspace': {
-        if (isInput) {
-          // input
-          if (!input.value.length && units.length) {
-            this.#removeTag(units.length - 1);
-          }
-        } else {
-          this.#removeTag(units.indexOf(target));
-        }
+        this.#removeTag(units.indexOf(target));
         break;
       }
 
       case 'ArrowLeft': {
-        if (!isInput) {
-          const prevIndex = (currentIndex - 1 + totalCount) % totalCount;
-          this.#swapUnits(units[prevIndex]);
-          target.focus();
-        }
+        const prevIndex = (currentIndex - 1 + totalCount) % totalCount;
+        this.#swapUnits(units[prevIndex]);
+        target.focus();
         break;
       }
 
       case 'ArrowRight': {
-        if (!isInput) {
-          const nextIndex = (currentIndex + 1 + totalCount) % totalCount;
-          this.#swapUnits(units[nextIndex]);
-          target.focus();
-        }
+        const nextIndex = (currentIndex + 1 + totalCount) % totalCount;
+        this.#swapUnits(units[nextIndex]);
+        target.focus();
         break;
       }
 
