@@ -387,7 +387,7 @@ export class MscTagsCollector extends HTMLElement {
           ...this.limitation
         };
 
-        input.maxlength = maxlength;
+        input.maxLength = maxlength;
         break;
       }
 
