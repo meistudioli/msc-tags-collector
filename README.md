@@ -16,7 +16,7 @@
 ```html
 <script
   type="module"
-  src="https://your-domain/wc-msc-tags-collector.js">        
+  src="https://unpkg.com/msc-tags-collector/mjs/wc-msc-tags-collector.js">        
 </script>
 ```
 
@@ -63,7 +63,7 @@ Otherwise, developers could also choose remoteconfig to fetch config for &lt;msc
 
 ```html
 <script type="module">
-import { MscTagsCollector } from 'https://your-domain/wc-msc-tags-collector.js';
+import { MscTagsCollector } from 'https://unpkg.com/msc-tags-collector/mjs/wc-msc-tags-collector.js';
 
 // use DOM api
 const nodeA = document.createElement('msc-tags-collector');
@@ -134,6 +134,7 @@ msc-tags-collector {
   /* input */
   --msc-tags-collector-input-color: rgba(35 42 49);
   --msc-tags-collector-input-placeholder-color: rgba(151 158 168);
+  --msc-tags-collector-input-padding-inline: 12px;
   --msc-tags-collector-caret-color: rgba(35 42 49);
 
   /* tags */

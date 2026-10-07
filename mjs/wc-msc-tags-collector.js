@@ -56,6 +56,7 @@ ${_fujiA11y}
   /* input */
   --input-color: var(--msc-tags-collector-input-color, rgba(35 42 49));
   --input-placeholder-color: var(--msc-tags-collector-input-placeholder-color, rgba(151 158 168));
+  --input-padding-inline: var(--msc-tags-collector-input-padding-inline, 12px);
   --caret-color: var(--msc-tags-collector-caret-color, rgba(35 42 49)); 
 }
 
@@ -87,7 +88,7 @@ ${_fujiA11y}
 }
 
 .tags-collector{position:relative;display:flex;padding:var(--main-padding);flex-wrap:wrap;gap:var(--main-gap);align-items:center;outline:0 none;}
-.tags-collector__input{inline-size:7.5em;color:var(--input-color);caret-color:var(--caret-color);line-height:var(--unit-size);padding-inline:var(--padding-inline);background-color:transparent;border:0 none;border-radius:0;outline:0 none;appearance:none;display:block;box-sizing:border-box;}
+.tags-collector__input{inline-size:7.5em;color:var(--input-color);caret-color:var(--caret-color);line-height:var(--unit-size);padding-inline:var(--input-padding-inline);background-color:transparent;border:0 none;border-radius:0;outline:0 none;appearance:none;display:block;box-sizing:border-box;}
 .tags-collector__input::placeholder{color:var(--input-placeholder-color);}
 .tags-collector__unit{position:relative;color:var(--unit-color);background-color:var(--unit-background-color);inline-size:fit-content;block-size:var(--unit-size);border-radius:var(--unit-size);padding-inline-start:.875em;display:flex;align-items:center;overflow:hidden;outline:0 none;cursor:move;pointer-events:var(--unit-indicator-pointer-events);white-space:nowrap;}
 .tags-collector__unit::before{position:absolute;inset-inline-start:0;inset-block-start:0;content:'';inline-size:100%;block-size:100%;box-sizing:border-box;border:2px dashed var(--unit-border-color);border-radius:var(--unit-size);pointer-events:none;will-change:opacity;transition:opacity 100ms ease;opacity:var(--border-opacity);}
@@ -406,7 +407,7 @@ export class MscTagsCollector extends HTMLElement {
       }
 
       case 'placeholder': {
-        this.removeAll();
+        this.removeAll(true);
 
         this.placeholder.forEach(
           (tag) => {
@@ -884,11 +885,11 @@ export class MscTagsCollector extends HTMLElement {
     }
   }
 
-  removeAll() {
+  removeAll(immediately = false) {
     this.#getUnits()
       .forEach(
         (unit) => {
-          unit.classList.add('tags-collector__unit--dismiss');
+          immediately ? unit.remove() : unit.classList.add('tags-collector__unit--dismiss');
         }
       );
 
